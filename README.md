@@ -25,3 +25,10 @@ upon matrix arithmetic ```(m_1 * m_2)``` and matrix on integer arithmetic ```(m_
 like the following:
 ```if(m.is_square())``` which is an already built-in call.
 
+# Multithreading
+* By default, `_PP_USE_THREADS` is defined in the .hpp file.
+* This will enable functions `Transposition`, `DOT Multiplication`, and `ADD / SUB` to out-thread the bulk of their work.
+* There is no default encoded thread cap.
+* The multithreading system uses Window's Library `CreateThread()` function, NOT `std::thread`.
+* Multithreading can speed up large matrix math because as your matrices grow, the number of loops required to perform the math
+grows, and therefore the time to complete each operation does as well.
