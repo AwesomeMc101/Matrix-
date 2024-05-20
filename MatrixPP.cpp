@@ -1,5 +1,18 @@
 #include "MatrixPP.hpp"
 
+#ifdef _DEBUG
+template<typename T>
+void printfvector(std::vector<T> vec)
+{
+	printf("\n{ ");
+	for (int i = 0; i < vec.size(); i++) {
+		std::cout << vec[i] << " ";
+	}
+	printf("}");
+}
+#endif
+
+
 template<typename T>
 static Shape set_shape(std::vector<std::vector<T>> provided_vector) {
 
@@ -299,4 +312,220 @@ Matrix Matrix::operator-(const Matrix nm) {
 	Matrix r(new_m);
 	return r;
 #endif
+}
+
+
+#ifdef _PP_USE_THREADS
+typedef struct sing_op_passdata {
+	std::vector<NINT>* ptr_data;
+	NINT num;
+	short op; //1=add,2=sub,3=mul
+	int* threads;
+};
+void sing_op_run(LPVOID pd) {
+	sing_op_passdata sopd = *(static_cast<sing_op_passdata*>(pd));
+	NINT num = sopd.num;
+	switch (sopd.op) {
+	case 1://add
+		std::for_each(sopd.ptr_data->begin(), sopd.ptr_data->end(), [num](NINT& val) {val += num; });
+		break;
+	case 2://sub
+		std::for_each(sopd.ptr_data->begin(), sopd.ptr_data->end(), [num](NINT& val) {val -= num; });
+		break;
+	case 3: //mul
+		std::for_each(sopd.ptr_data->begin(), sopd.ptr_data->end(), [num](NINT& val){val *= num; });
+		break;
+	}
+	*sopd.threads -= 1;
+}
+
+#endif
+
+Matrix Matrix::operator+(const NINT to_add) {
+#ifdef _PP_USE_THREADS
+	int threads = 0;
+#endif
+	for (int i = 0; i < this->shape.rows; i++) {
+#ifdef _PP_USE_THREADS
+		sing_op_passdata* sopd = new sing_op_passdata;
+		sopd->num = to_add;
+		sopd->ptr_data = &rows[i];
+		sopd->op = 1;
+		sopd->threads = &threads;
+		threads++;
+		CreateThread(0, 64, (LPTHREAD_START_ROUTINE)sing_op_run, (LPVOID)(&*sopd), 0, 0);
+#else
+		for (int x = 0; x < rows[i].size(); x++) {
+			rows[i][x] += to_add;
+		}
+#endif
+	}
+#ifdef _PP_USE_THREADS
+	while(threads){}
+#endif
+
+	return *this;
+}
+
+Matrix Matrix::operator-(const NINT to_sub) {
+#ifdef _PP_USE_THREADS
+	int threads = 0;
+#endif
+	for (int i = 0; i < this->shape.rows; i++) {
+#ifdef _PP_USE_THREADS
+		sing_op_passdata* sopd = new sing_op_passdata;
+		sopd->num = to_sub;
+		sopd->ptr_data = &rows[i];
+		sopd->op = 2;
+		sopd->threads = &threads;
+		threads++;
+		CreateThread(0, 64, (LPTHREAD_START_ROUTINE)sing_op_run, (LPVOID)(&*sopd), 0, 0);
+#else
+		for (int x = 0; x < rows[i].size(); x++) {
+			rows[i][x] *= to_sub;
+		}
+#endif
+	}
+#ifdef _PP_USE_THREADS
+	while (threads) {}
+#endif
+
+	return *this;
+} //sub 2 matrices
+Matrix Matrix::operator*(const NINT to_mul) {
+#ifdef _PP_USE_THREADS
+	int threads = 0;
+#endif
+	for (int i = 0; i < this->shape.rows; i++) {
+#ifdef _PP_USE_THREADS
+		sing_op_passdata* sopd = new sing_op_passdata;
+		sopd->num = to_mul;
+		sopd->ptr_data = &rows[i];
+		sopd->op = 3;
+		sopd->threads = &threads;
+		threads++;
+		CreateThread(0, 64, (LPTHREAD_START_ROUTINE)sing_op_run, (LPVOID)(&*sopd), 0, 0);
+#else
+		for (int x = 0; x < rows[i].size(); x++) {
+			rows[i][x] *= to_mul;
+		}
+#endif
+	}
+#ifdef _PP_USE_THREADS
+	while (threads) {}
+#endif
+
+	return *this;
+} //multiply 2 matrices
+
+namespace Determinant_Simple_Calculators {
+
+	/* 2x2 calculator */
+	[[deprecated("Use .determinant() on a matrix class.")]]
+	static NINT __x22(std::vector<std::vector<NINT>> vec) 
+	{
+		//unsafe
+
+		NINT ad = vec[0][0] * vec[1][1];
+		NINT bc = vec[0][1] * vec[1][0];
+		return (ad - bc);
+	}
+	[[deprecated("Use .determinant() on a matrix class.")]]
+	static NINT x22(Matrix m)  //2x2
+	{
+		if(m.get_rows() != 2 ||
+			m.get_cols() != 2
+			) {
+			return 0;
+		}
+
+		return (__x22(m.grab_matrix()));
+	}
+
+	/* 3x3 calculator */
+	[[deprecated("Use .determinant() on a matrix class.")]]
+	static NINT __x33(std::vector<std::vector<NINT>> vec) {
+
+	}
+
+	[[deprecated("Use .determinant() on a matrix class.")]]
+	static NINT x33(Matrix m) {
+		if(m.get_rows()!=3 ||
+			m.get_cols()!= 3
+			) {
+			return 0;
+		}
+
+		return __x33(m.grab_matrix());
+	}
+
+	static NINT inversion_count(std::vector<int> permute) { //count the number of inversions a specific permutation has
+		/* this works by, for each number, it counts how many numbers to the right of it are smaller.
+		
+		For example:
+		lets say we have 
+		{2,1,3}
+		_^ We are on index 0, which is 2.
+		1 is smaller than 2, so we +1 to our total inversion count. 3 is bigger, so we do nothing.
+		*/
+		NINT count = 0;
+		for (int i = 0; i < permute.size(); i++) {
+			NINT num = permute[i];
+			for (int x = i; x < permute.size(); x++) {
+				if (permute[x] < num) {
+					count++;
+				}
+			}
+		}
+		return count;
+	}
+
+	static bool sgn(NINT val) {
+		int rnd = round(val);
+		return rnd % 2;
+	}
+}
+
+typedef struct Permute {
+	std::vector<int> set{};
+	bool sign; //0=pos, 1=neg
+};
+
+
+NINT Matrix::determinant() {
+	if (!is_square()) { return 0; }
+
+	std::vector<Permute> permutes{};
+
+	std::vector<int> indexes{};
+	for (int i = 0; i < shape.rows; i++) {
+		indexes.push_back(i + 1);
+	}
+
+	do {
+		Permute pm;
+		pm.set = indexes;
+		pm.sign = Determinant_Simple_Calculators::sgn(Determinant_Simple_Calculators::inversion_count(indexes));
+		permutes.push_back(pm);
+	}while(std::next_permutation(indexes.begin(), indexes.end()));
+
+	NINT determinant = 0;
+	for (Permute pm : permutes) {
+
+		//sub 1 from every index!!
+		NINT indexed_product = 1;
+		/* If my math is right, there will be 1 row for every element in the permute. */
+
+		for (int i = 0; i < pm.set.size(); i++) {
+			size_t idx = (pm.set[i]-1);
+			indexed_product *= (NINT)(this->rows[i][idx]);
+		}
+
+		if (pm.sign) {
+			indexed_product *= -1;
+		}
+		determinant += indexed_product;
+	}
+	return determinant;
+
 }
