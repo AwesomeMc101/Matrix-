@@ -36,10 +36,21 @@ public:
 	void sh(); //set the shape
 	void T(); //transpose
 
+	bool is_square() { return (shape.rows == shape.cols); }
+
+	unsigned int get_rows() { return shape.rows; }
+	unsigned int get_cols() { return shape.cols; }
+
+	NINT determinant();
+
 	std::vector<std::vector<NINT>> grab_matrix() { return rows; } //debug
 	 
-	Matrix operator+(const Matrix); //add
-	Matrix operator-(const Matrix); //sub
-	Matrix operator*(const Matrix); //multiply
+	Matrix operator+(const Matrix); //add 2 matrices
+	Matrix operator-(const Matrix); //sub 2 matrices
+	Matrix operator*(const Matrix); //multiply 2 matrices
+
+	Matrix operator+(const NINT); //add 2 matrices
+	Matrix operator-(const NINT); //sub 2 matrices
+	Matrix operator*(const NINT); //multiply 2 matrices
 };
 
