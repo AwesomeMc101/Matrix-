@@ -25,6 +25,9 @@ upon matrix arithmetic ```(m_1 * m_2)``` and matrix on integer arithmetic ```(m_
 * If you want to add a check in your code to prevent determinant failure, you can do something
 like the following:
 ```if(m.is_square())``` which is an already built-in call.
+* Calculating determinant uses Leibniz's formula, which involves calculating the 
+possible permutations of the matrix, and then indexing the matrix and doing
+some other math. It can calculate (as far as I'm concerned) any dimension of matrix. 
 
 # Multithreading
 * By default, `_PP_USE_THREADS` is defined in the .hpp file.
