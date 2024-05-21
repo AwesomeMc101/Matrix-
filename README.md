@@ -1,6 +1,7 @@
 # MatrixPlusPlus
 * Generate any sort of matrix you want using vectors.
 * Legit just two files, a header and object file.
+* Wrote this in a few hours because we had a study day at my school and I got bored.
 
 # Basics
 * To define a matrix, simply type ```Matrix m```.
