@@ -439,7 +439,7 @@ namespace Determinant_Simple_Calculators {
 			return 0;
 		}
 
-		return (__x22(m.grab_matrix()));
+		//return (__x22(m.grab_matrix()));
 	}
 
 	/* 3x3 calculator */
@@ -456,7 +456,7 @@ namespace Determinant_Simple_Calculators {
 			return 0;
 		}
 
-		return __x33(m.grab_matrix());
+	//	return __x33(m.grab_matrix());
 	}
 
 	static NINT inversion_count(std::vector<int> permute) { //count the number of inversions a specific permutation has
@@ -518,7 +518,7 @@ NINT Matrix::determinant() {
 
 		for (int i = 0; i < pm.set.size(); i++) {
 			size_t idx = (pm.set[i]-1);
-			indexed_product *= (NINT)(this->rows[i][idx]);
+			indexed_product *= (NINT)(this->rows[i][idx]); //C-Style casting!!!!!!!
 		}
 
 		if (pm.sign) {
@@ -528,4 +528,18 @@ NINT Matrix::determinant() {
 	}
 	return determinant;
 
+}
+
+NINT Matrix::tr() {
+	return trace(*this);
+}
+NINT trace(Matrix m) {
+	if (!m.is_square()) { return 0; }
+
+	std::vector<std::vector<NINT>> vec = m.grab_matrix();
+	NINT total = 0;
+	for (int i = 0; i < vec.size(); i++) {
+		total += vec[i][i];
+	}
+	return total;
 }
