@@ -10,6 +10,12 @@
 * The constructor does not have a default check to ensure each row/column is numerically
 aligned. You can build that in or add checks.
 
+# What is NINT?
+* Just a typedef I'm used to using since I originally wrote this lib for a neural network.
+* Stands for "neural int" lol.
+* You can change it from a `long double` to basically any other type to save memory 
+if needed, it shouldn't affect the calculations at all.
+
 # Operators
 * Matrices have the +-* operators all built in. These operators support matrix
 upon matrix arithmetic ```(m_1 * m_2)``` and matrix on integer arithmetic ```(m_1 * 3)```
@@ -28,6 +34,11 @@ like the following:
 * Calculating determinant uses Leibniz's formula, which involves calculating the 
 possible permutations of the matrix, and then indexing the matrix and doing
 some other math. It can calculate (as far as I'm concerned) any dimension of matrix. 
+
+# Trace
+* Another linear algebra theorem, you can call `trace(m)` or `m.tr()` to
+receive the trace value as a double.
+* Only works on a square matrix, too.
 
 # Multithreading
 * By default, `_PP_USE_THREADS` is defined in the .hpp file.
