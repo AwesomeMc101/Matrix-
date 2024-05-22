@@ -42,6 +42,7 @@ public:
 	unsigned int get_cols() { return shape.cols; }
 
 	NINT determinant();
+	NINT tr();
 
 	std::vector<std::vector<NINT>> grab_matrix() { return rows; } //debug
 	 
@@ -54,3 +55,4 @@ public:
 	Matrix operator*(const NINT); //multiply 2 matrices
 };
 
+NINT trace(Matrix);
